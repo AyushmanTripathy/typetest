@@ -1,6 +1,6 @@
 # typetest
 
-just a terminal typing test
+just a terminal typing test\
 check it out on [npmjs.com](https://www.npmjs.com/package/typetest)
 
 install - `npm i -g typetest`
