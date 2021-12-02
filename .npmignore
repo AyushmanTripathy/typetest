@@ -1,5 +1,5 @@
 *
 
-build
-settings.json
-package.json
+!src/index.js
+!settings.json
+!package.json

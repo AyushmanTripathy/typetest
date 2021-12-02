@@ -1,4 +1,4 @@
 TODO
 ----
 
-pack the dependencies in rollup
+solve the config bug

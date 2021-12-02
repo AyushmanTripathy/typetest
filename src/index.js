@@ -12,7 +12,7 @@ const req = promisify(request);
 
 let config = loadConfig();
 
-home()
+home();
 async function home(n) {
   if (!n) {
     console.clear();
@@ -63,20 +63,21 @@ async function settings() {
   );
 
   child.on("exit", (e, code) => {
-    config = loadConfig("");
+    config = loadConfig();
     home();
   });
 }
 
 function loadConfig() {
-  try {
-    return JSON.parse(
-      readFileSync(new URL("../settings.json", import.meta.url))
-    );
-  } catch (e) {
-    log(red("couldn't load settings.json"));
-    log(e);
-  }
+  const config = JSON.parse(
+    readFileSync(new URL("../settings.json", import.meta.url))
+  );
+  if (!config)
+    return {
+      albhabets_only: true,
+      case_sensitive: false,
+    };
+  return config;
 }
 
 async function test() {
@@ -120,7 +121,7 @@ async function test() {
 
 async function testFrame(words, index) {
   console.clear();
-
+  log("[q] to stop the test\n");
   log(
     `${words.slice(0, index).join(" ")} ${yellow(words[index])} ${
       index != words.length - 1 ? words.slice(index + 1).join(" ") : ""
