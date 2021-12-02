@@ -1,0 +1,19 @@
+{
+  "name": "typingtest",
+  "version": "1.0.0",
+  "description": "terminal typing test",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "typetest": "src/index.js"
+  },
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "author": "Ayushman Tripathy",
+  "license": "MIT",
+  "dependencies": {
+    "btss": "^1.0.0",
+    "request": "^2.88.2"
+  }
+}
