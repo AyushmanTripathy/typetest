@@ -2,26 +2,31 @@
 
 import { promisify } from "util";
 import { spawn } from "child_process";
-import { red, yellow, underscore } from "btss";
+import { bright, yellow, underscore } from "btss";
 import request from "request";
-import { readFileSync } from "fs";
+import { readFileSync, writeFile } from "fs";
 import { createInterface } from "readline";
 
 globalThis.log = (str) => console.log(str);
 const req = promisify(request);
 
 let config = loadConfig();
+let data = loadJson("../data.json");
 
 home();
 async function home(n) {
   if (!n) {
     console.clear();
-    log("Welcome to wpm");
-    log("select a option");
-  } else log("\n");
-  log("[t] test");
-  log("[s] settings");
-  log("[q] quit");
+    log(bright("Welcome to typetest"));
+    log("-------------------");
+    log("Current average : " + data.average);
+    log("Best : " + data.best);
+    log("Last score : " + (data.scores.length ? last(data.scores) : "none"));
+  }
+  log(`\n[t] test`);
+  log(`[s] settings`);
+  log(`[r] reset`);
+  log(`[q] quit`);
 
   const rl = createInterface({
     input: process.stdin,
@@ -42,6 +47,9 @@ async function home(n) {
       case "s":
         rl.close();
         settings();
+        break;
+      case "r":
+        reset();
         break;
       default:
         log(data + " is not a valid option");
@@ -69,9 +77,7 @@ async function settings() {
 }
 
 function loadConfig() {
-  const config = JSON.parse(
-    readFileSync(new URL("../settings.json", import.meta.url))
-  );
+  const config = loadJson("../settings.json");
   if (!config)
     return {
       albhabets_only: true,
@@ -80,8 +86,13 @@ function loadConfig() {
   return config;
 }
 
+function loadJson(path) {
+  return JSON.parse(readFileSync(new URL(path, import.meta.url)));
+}
+
 async function test() {
   const words = await getPara();
+  words.unshift("");
 
   let index = 0;
   testFrame(words, index);
@@ -92,12 +103,14 @@ async function test() {
   });
 
   let count = 0;
-  let time = new Date().getTime();
-  rl.on("line", (data) => {
-    data = data.trim();
+  let time;
+  rl.on("line", (input) => {
+    input = input.trim();
+    if (!time) time = new Date().getTime();
 
-    if (data == "q") index = words.length - 1;
-    else if (data == words[index]) count++;
+    if (input == "q") index = words.length - 1;
+    else if(!input);
+    else if (input == words[index]) count++;
     else words[index] = underscore(words[index]);
 
     index += 1;
@@ -105,14 +118,29 @@ async function test() {
       rl.close();
 
       time = (new Date().getTime() - time) / 60000;
-      log(
-        `\nYou got ${count} out of ${words.length} words correct in ${round(
-          time,
-          2
-        )} min`
-      );
-      log("wpm : " + Math.round(count / time));
+      if (time) {
+        log(
+          `\nYou got ${count} out of ${words.length} words correct in ${round(
+            time,
+            2
+          )} min`
+        );
+        const wpm = Math.round(count / time);
+        log("wpm : " + wpm);
+        data.scores.push(wpm);
+        data.average = Math.round(
+          data.scores.reduce((acc, cur) => acc + cur, 0) /
+            (data.scores.length + 1)
+        );
+        log("average : " + data.average);
 
+        if (data.best <= wpm) {
+          data.best = wpm;
+          log("This is your all time best!, congrats 🎉");
+        }
+
+        save(data);
+      }
       return home(true);
     }
     testFrame(words, index);
@@ -121,6 +149,7 @@ async function test() {
 
 async function testFrame(words, index) {
   console.clear();
+  log("[Enter] to start");
   log("[q] to stop the test\n");
   log(
     `${words.slice(0, index).join(" ")} ${yellow(words[index])} ${
@@ -142,4 +171,28 @@ async function getPara() {
 
 function round(value, decimals) {
   return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
+}
+
+function last(arr) {
+  return arr[arr.length - 1];
+}
+
+function reset() {
+  data = {
+    scores: [],
+    average: 0,
+    best: 0,
+  };
+  save(data);
+}
+
+async function save(data) {
+  writeFile(
+    new URL("../data.json", import.meta.url),
+    JSON.stringify(data),
+    "utf-8",
+    (error) => {
+      if (error) throw "couldn't not save to data.json";
+    }
+  );
 }
