@@ -2,16 +2,20 @@
 
 import { promisify } from "util";
 import { spawn } from "child_process";
-import { bright, yellow, underscore } from "btss";
+import { red, bright, yellow, underscore } from "btss";
 import request from "request";
-import { readFileSync, writeFile } from "fs";
+import { homedir } from "os";
+import { unlinkSync, existsSync, readFileSync, writeFile } from "fs";
 import { createInterface } from "readline";
 
 globalThis.log = (str) => console.log(str);
 const req = promisify(request);
 
-let config = loadConfig();
-let data = loadJson("../data.json");
+const config_path = homedir() + "/.config/.typetest.json";
+const data_path = homedir() + "/.config/.typetest.data.json";
+
+let config = loadJson(config_path, "settings");
+let data = loadJson(data_path, "data");
 
 home();
 async function home(n) {
@@ -52,7 +56,7 @@ async function home(n) {
         reset();
         break;
       default:
-        log(data + " is not a valid option");
+        log(red(data + " is not a valid option"));
         break;
     }
     process.stdout.write("> ");
@@ -62,32 +66,33 @@ async function home(n) {
 async function settings() {
   const editor = process.env.EDITOR || "vim";
 
-  const child = spawn(
-    editor,
-    [new URL("../settings.json", import.meta.url).pathname],
-    {
-      stdio: "inherit",
-    }
-  );
+  const child = spawn(editor, [config_path], {
+    stdio: "inherit",
+  });
 
   child.on("exit", (e, code) => {
-    config = loadConfig();
+    config = loadJson(config_path, "settings");
     home();
   });
 }
 
-function loadConfig() {
-  const config = loadJson("../settings.json");
-  if (!config)
-    return {
-      albhabets_only: true,
-      case_sensitive: false,
-    };
-  return config;
+function loadJson(path, from) {
+  log(from);
+  if (!existsSync(path)) {
+    const data = readFileSync(relativePath("../" + from + ".json"));
+    writeFile(path, data, () => {});
+    return JSON.parse(data);
+  }
+  try {
+    return JSON.parse(readFileSync(path, "utf-8"));
+  } catch (e) {
+    unlinkSync(path);
+    return loadConfig(path, from);
+  }
 }
 
-function loadJson(path) {
-  return JSON.parse(readFileSync(new URL(path, import.meta.url)));
+function relativePath(path) {
+  return new URL(path, import.meta.url);
 }
 
 async function test() {
@@ -109,7 +114,7 @@ async function test() {
     if (!time) time = new Date().getTime();
 
     if (input == "q") index = words.length - 1;
-    else if(!input);
+    else if (!input);
     else if (input == words[index]) count++;
     else words[index] = underscore(words[index]);
 
@@ -145,6 +150,10 @@ async function test() {
     }
     testFrame(words, index);
   });
+}
+
+function save(data) {
+  writeFile(data_path, JSON.stringify(data), () => {});
 }
 
 async function testFrame(words, index) {
@@ -184,15 +193,4 @@ function reset() {
     best: 0,
   };
   save(data);
-}
-
-async function save(data) {
-  writeFile(
-    new URL("../data.json", import.meta.url),
-    JSON.stringify(data),
-    "utf-8",
-    (error) => {
-      if (error) throw "couldn't not save to data.json";
-    }
-  );
 }

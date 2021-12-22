@@ -1,4 +1,0 @@
-TODO
-----
-
-solve the config bug

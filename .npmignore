@@ -1,5 +1,7 @@
 *
 
-!src/index.js
+!data.json
+!data.json.swp
+!src/*
 !settings.json
 !package.json

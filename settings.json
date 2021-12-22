@@ -1,4 +1,4 @@
 {
-  "case_sensitive":true,
-  "albhabets_only": true 
+  "case_sensitive": false,
+  "albhabets_only": false
 }
