@@ -2,7 +2,7 @@
 
 import { promisify } from "util";
 import { spawn } from "child_process";
-import { red, bright, yellow, underscore } from "btss";
+import { red, bold, yellow, underline } from "btss";
 import request from "request";
 import { homedir } from "os";
 import { unlinkSync, existsSync, readFileSync, writeFile } from "fs";
@@ -21,7 +21,7 @@ home();
 async function home(n) {
   if (!n) {
     console.clear();
-    log(bright("Welcome to typetest"));
+    log(bold("Welcome to typetest"));
     log("-------------------");
     log("Current average : " + data.average);
     log("Best : " + data.best);
@@ -116,7 +116,7 @@ async function test() {
     if (input == "q") index = words.length - 1;
     else if (!input);
     else if (input == words[index]) count++;
-    else words[index] = underscore(words[index]);
+    else words[index] = underline(words[index]);
 
     index += 1;
     if (index == words.length) {

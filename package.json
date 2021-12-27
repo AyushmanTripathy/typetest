@@ -1,6 +1,6 @@
 {
-  "name": "typingtest",
-  "version": "1.0.0",
+  "name": "typetest",
+  "version": "1.2.0",
   "description": "terminal typing test",
   "main": "src/index.js",
   "type": "module",
@@ -13,7 +13,7 @@
   "author": "Ayushman Tripathy",
   "license": "MIT",
   "dependencies": {
-    "btss": "^1.0.0",
+    "btss": "^1.1.0",
     "request": "^2.88.2"
   }
 }
